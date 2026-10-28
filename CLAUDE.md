@@ -4,17 +4,23 @@ Aplicación web externa para el cliente: ver el avance de sus obras con fotos y 
 
 Parte de la «Plataforma de supervisión de obras». Si existe `../../CLAUDE.md` (carpeta que agrupa todos los proyectos), léelo primero: tiene las reglas transversales, el plan y los contratos generales.
 
-**Estado:** solo documentación. El proyecto del framework todavía no se generó (tarea de la fase 1 del plan general). No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
+**Estado:** proyecto generado con la plantilla oficial de Vite, sin pantallas propias. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
 
 ## Stack
 
-- React
-- Inicio de sesión con Keycloak (OIDC), rol `cliente`
-- REST hacia Obras
+- Node 24 · React 19 · Vite 8 · TypeScript 7 (lo trae la plantilla) · lint con oxlint
+- Previsto: react-oidc-context 3 + oidc-client-ts (login con Keycloak, rol `cliente`); REST hacia Obras
+- Puerto: `4300`
 
 ## Comandos
 
-Se completan al generar el proyecto.
+```sh
+npm install
+npm run dev          # http://localhost:4300
+npm run build        # tsc -b && vite build
+npm run lint
+npm run preview      # sirve lo compilado
+```
 
 ## Estructura prevista
 
@@ -34,10 +40,10 @@ src/
 
 ## Documentación
 
-- `docs/app.md`: qué hace, pantallas o responsabilidades, y qué no hace.
-- `docs/contratos.md`: qué consume y qué expone.
+- `docs/app.md`: pantallas y qué no hace.
+- `docs/contratos.md`: qué consume.
 - `docs/specs/`: especificaciones por funcionalidad (`requisitos.md`, `diseno.md`, `tareas.md`).
 
 ## Commits
 
-Conventional Commits en español e imperativo (`feat(alcance): descripción`). Sin coautoría ni firmas de la IA.
+Conventional Commits en español e imperativo (`feat(planillas): agrega aprobación de planilla`). Sin coautoría ni firmas de la IA.

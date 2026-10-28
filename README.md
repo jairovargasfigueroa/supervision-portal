@@ -2,6 +2,6 @@
 
 Aplicación web externa para el cliente: ver el avance de sus obras con fotos y aprobar u observar las planillas.
 
-React.
+React 19 · Vite 8.
 
 Documentación en [`docs/`](docs/) e instrucciones para el agente en [`CLAUDE.md`](CLAUDE.md).
