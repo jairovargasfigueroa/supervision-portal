@@ -4,11 +4,11 @@ Aplicación web externa para el cliente: ver el avance de sus obras con fotos y 
 
 Parte de la «Plataforma de supervisión de obras». Si existe `../../CLAUDE.md` (carpeta que agrupa todos los proyectos), léelo primero: tiene las reglas transversales, el plan y los contratos generales.
 
-**Estado:** proyecto generado con la plantilla oficial de Vite, sin pantallas propias. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
+**Estado:** fase 1: tema MUI, fuentes, `formato.ts` y estados vacío y error (1.9); pantalla base sin datos. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
 
 ## Stack
 
-- Node 24 · React 19 · Vite 8 · TypeScript 7 (lo trae la plantilla) · lint con oxlint
+- Node 24 · React 19 · Vite 8 · TypeScript 7 (lo trae la plantilla) · MUI 9 · lint con oxlint · pruebas con Vitest + Testing Library (jsdom)
 - Previsto: react-oidc-context 3 + oidc-client-ts (login con Keycloak, rol `cliente`); REST hacia Obras
 - Puerto: `4300`
 
@@ -19,17 +19,13 @@ npm install
 npm run dev          # http://localhost:4300
 npm run build        # tsc -b && vite build
 npm run lint
+npm test             # vitest run
 npm run preview      # sirve lo compilado
 ```
 
-## Estructura prevista
+## Estructura
 
-```
-src/
-  obras/          mis obras, avance y fotos publicadas
-  planillas/      detalle, aprobar u observar (con motivo)
-  auth/           sesión con Keycloak
-```
+Ver `docs/estructura.md` (obligatorio): `routes/`, `api/`, `componentes/`, `nucleo/` y `tema.ts`.
 
 ## Reglas del proyecto
 
@@ -49,4 +45,4 @@ src/
 
 Conventional Commits en español e imperativo (`feat(planillas): agrega aprobación de planilla`). Sin coautoría ni firmas de la IA.
 
-Trabajo en ramas `feat/NNN-nombre` con *pull request* y revisión; nunca hagas *push* a `main` (está protegida). Detalle y definición de terminado: `docs/flujo-trabajo.md` del repo `supervision-docs`.
+Git Flow: ramas `feat/`, `fix/`, `docs/`… desde `develop`, que entran por *pull request*; nunca hagas *push* a `main` ni a `develop` (están protegidas). El agente crea y fusiona los PR (merge normal, sin squash) hacia `develop` cuando todas las pruebas pasan. Detalle y definición de terminado: `docs/flujo-trabajo.md` del repo `supervision-docs`.
