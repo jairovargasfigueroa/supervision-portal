@@ -18,7 +18,7 @@ React 19 + Vite 8, MUI 9 (`@mui/material`, `@mui/icons-material`, `@emotion/reac
 
 ```
 src/
-  main.tsx                     # valida variables; AuthProvider → QueryClientProvider → ThemeProvider → RouterProvider
+  main.tsx                     # valida variables; AuthProvider → ProveedorClienteObras → QueryClientProvider → ThemeProvider → RouterProvider
   tema.ts
   routeTree.gen.ts             # lo genera @tanstack/router-plugin desde routes/ (se sube al repo: `tsc -b` lo necesita; no se edita ni se revisa con lint)
   routes/                      # TanStack Router por archivos (cada archivo exporta solo `Route`)
@@ -28,8 +28,8 @@ src/
     planillas.$planillaId.tsx  # Detalle de planilla, aprobar u observar
     sin-acceso.tsx             # usa componentes/SinAcceso.tsx
   api/
-    cliente.ts                 # fetch a VITE_OBRAS_URL con el token; Problem Details → error tipado
-    obras.ts, planillas.ts     # funciones + queryOptions de TanStack Query
+    cliente.ts                 # fetch a VITE_OBRAS_URL con el token; Problem Details → ErrorApi; ProveedorClienteObras / useClienteObras; reintentos de TanStack Query
+    obras.ts, planillas.ts     # tipos del contrato, funciones + queryOptions de TanStack Query
   componentes/
     BarraSuperior.tsx, SinAcceso.tsx
     TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx, GaleriaFotos.tsx
@@ -47,6 +47,7 @@ Las pruebas van junto al código, con sufijo `.test.ts` / `.test.tsx` (`nucleo/f
 
 - Datos siempre con TanStack Query (`queryOptions` por recurso; `refetchInterval: 2000` mientras la planilla está `APROBANDO`).
 - Mutaciones (`aprobar`, `observar`) invalidan las consultas de la planilla y de la obra.
+- Toda llamada a Obras pasa por `useClienteObras()` (token vigente en cada pedido, tiempo máximo de 30 s). Los errores son `ErrorApi` (`tipo`: `respuesta`, `red` o `tiempo`; `estado`, `codigo`, `errores[]`) y el texto lo da `mensajeDeError` de `nucleo/errores.ts`; nunca se muestra el `detail` del servicio. Las consultas se reintentan solo ante red, tiempo o 5xx (hasta 2 veces).
 - Los parámetros de ruta se validan con Zod en la definición de la ruta.
 - Variables de entorno `VITE_KEYCLOAK_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT_ID` y `VITE_OBRAS_URL` (`.env`, copia de `.env.example`) validadas al iniciar con Zod.
 
