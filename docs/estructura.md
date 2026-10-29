@@ -68,4 +68,4 @@ Las pruebas van junto al código, con sufijo `.test.ts` / `.test.tsx` (`nucleo/f
 
 ## Pruebas
 
-Vitest + Testing Library: rutas protegidas, diálogo de observar (validación), formato, estados vacío y error. `npm test` (`vitest run`, entorno `jsdom`, configurado en `vite.config.ts`). Sin `globals`: cada prueba importa `describe`/`it`/`expect` de `vitest` y las de componentes llaman a `cleanup` en `afterEach`.
+Vitest + Testing Library: rutas protegidas, diálogo de observar (validación), formato, estados vacío y error. Las pantallas (`routes/obras.test.tsx`, `routes/planillas.test.tsx`) se prueban con las rutas reales y Obras simulado (`pruebas/portalSimulado.tsx`, que inyecta un `fetch` en el cliente); la espera de la saga, con relojes simulados de Vitest. `npm test` (`vitest run`, entorno `jsdom`, configurado en `vite.config.ts`). Sin `globals`: cada prueba importa `describe`/`it`/`expect` de `vitest` y las de componentes llaman a `cleanup` en `afterEach`.

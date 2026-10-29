@@ -9,7 +9,7 @@ import { routeTree } from '../routeTree.gen';
 import { tema } from '../tema';
 
 // La primera vez cada ruta carga su parte del código (autoCodeSplitting): se da más margen a las esperas.
-configure({ asyncUtilTimeout: 3_000 });
+configure({ asyncUtilTimeout: 8_000 });
 
 // Ayudas para las pruebas de pantallas: sesión de cliente simulada y Obras simulado (respuestas del contrato,
 // docs/contratos/rest.md). Solo las importan los archivos .test.tsx.

@@ -13,5 +13,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}'],
+    // Las pruebas de pantallas montan el portal entero: con todos los archivos en paralelo tardan más de 5 s.
+    testTimeout: 20_000,
   },
 })
