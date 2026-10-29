@@ -1,12 +1,15 @@
 import { ThemeProvider } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
-import { render } from '@testing-library/react';
+import { configure, render } from '@testing-library/react';
 import type { AuthContextProps } from 'react-oidc-context';
 import { vi } from 'vitest';
 import { crearClienteObras, ProveedorClienteObrasFijo } from '../api/cliente';
 import { routeTree } from '../routeTree.gen';
 import { tema } from '../tema';
+
+// La primera vez cada ruta carga su parte del código (autoCodeSplitting): se da más margen a las esperas.
+configure({ asyncUtilTimeout: 3_000 });
 
 // Ayudas para las pruebas de pantallas: sesión de cliente simulada y Obras simulado (respuestas del contrato,
 // docs/contratos/rest.md). Solo las importan los archivos .test.tsx.

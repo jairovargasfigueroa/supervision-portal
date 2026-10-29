@@ -44,6 +44,7 @@ src/
     sesion.ts                  # configuración de react-oidc-context y leerUsuario (nombre, roles y azp del token)
     roles.ts                   # rolesEfectivos(roles, azp) y tieneAcceso(roles, azp)
     formato.ts, errores.ts     # errores.ts: codigo → texto de docs/mensajes.md
+    esperaAprobacion.ts        # useEsperaAprobacion: consulta cada 2 s mientras APROBANDO, aviso a los 90 s, corte a los 4 min
   pruebas/
     portalSimulado.tsx         # solo para las pruebas: sesión de cliente, Obras simulado (fetch) y datos de prueba
 ```
@@ -52,7 +53,7 @@ Las pruebas van junto al código, con sufijo `.test.ts` / `.test.tsx` (`nucleo/f
 
 ## Reglas
 
-- Datos siempre con TanStack Query (`queryOptions` por recurso; `refetchInterval: 2000` mientras la planilla está `APROBANDO`).
+- Datos siempre con TanStack Query (`queryOptions` por recurso; `refetchInterval: 2000` mientras la planilla está `APROBANDO`, lo decide `useEsperaAprobacion`: a los 90 s muestra el aviso de demora y a los 4 minutos deja de consultar y ofrece «Actualizar»).
 - Mutaciones (`aprobar`, `observar`) invalidan las consultas de la planilla y de la obra.
 - Toda llamada a Obras pasa por `useClienteObras()` (token vigente en cada pedido, tiempo máximo de 30 s). Los errores son `ErrorApi` (`tipo`: `respuesta`, `red` o `tiempo`; `estado`, `codigo`, `errores[]`) y el texto lo da `mensajeDeError` de `nucleo/errores.ts`; nunca se muestra el `detail` del servicio. Las consultas se reintentan solo ante red, tiempo o 5xx (hasta 2 veces).
 - Los parámetros de ruta se validan con Zod en la definición de la ruta.

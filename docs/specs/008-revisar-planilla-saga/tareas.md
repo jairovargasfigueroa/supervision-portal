@@ -6,5 +6,5 @@ Marca cada tarea al terminarla (con sus pruebas y su commit).
 
 - [x] Cliente REST de Obras con el token
 - [x] Pantalla Mis obras y detalle de obra (avance por partida, fotos publicadas, planillas)
-- [ ] Detalle de planilla con «Aprobar» (confirmación y espera con consulta cada 2 s hasta 4 min; aviso a los 90 s) y «Observar» (motivo 10–500)
+- [x] Detalle de planilla con «Aprobar» (confirmación y espera con consulta cada 2 s hasta 4 min; aviso a los 90 s) y «Observar» (motivo 10–500)
 - [ ] Pruebas de componentes
