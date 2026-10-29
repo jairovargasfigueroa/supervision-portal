@@ -6,4 +6,4 @@ Marca cada tarea al terminarla (con sus pruebas y su commit).
 
 - [x] Instalar `react-oidc-context` y `oidc-client-ts`; configurar `AuthProvider` (realm `supervision`, cliente `portal`, renovación silenciosa)
 - [x] Ruta protegida, pantalla `SinAcceso` sin rol `cliente` y barra superior con «Cerrar sesión»
-- [ ] Pruebas de la ruta protegida y `SinAcceso`
+- [x] Pruebas de la ruta protegida y `SinAcceso`

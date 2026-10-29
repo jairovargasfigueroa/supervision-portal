@@ -4,18 +4,20 @@ Aplicación web externa para el cliente: ver el avance de sus obras con fotos y 
 
 Parte de la «Plataforma de supervisión de obras». Si existe `../../CLAUDE.md` (carpeta que agrupa todos los proyectos), léelo primero: tiene las reglas transversales, el plan y los contratos generales.
 
-**Estado:** fase 1: tema MUI, fuentes, `formato.ts` y estados vacío y error (1.9); pantalla base sin datos. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
+**Estado:** fase 1 (tema, fuentes, `formato.ts`, estados vacío y error) y 001 (inicio de sesión con Keycloak, rutas protegidas, `SinAcceso` y barra con «Cerrar sesión»). «Mis obras» muestra el estado vacío hasta la 008. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
 
 ## Stack
 
 - Node 24 · React 19 · Vite 8 · TypeScript 7 (lo trae la plantilla) · MUI 9 · lint con oxlint · pruebas con Vitest + Testing Library (jsdom)
-- Previsto: react-oidc-context 3 + oidc-client-ts (login con Keycloak, rol `cliente`); REST hacia Obras
-- Puerto: `4300`
+- TanStack Router por archivos (`src/routes/`, genera `src/routeTree.gen.ts`) · TanStack Query 5 · Zod 4
+- react-oidc-context 3 + oidc-client-ts 3 (login con Keycloak, cliente `portal`, rol `cliente`); previsto: REST hacia Obras
+- Puerto: `4300`. Variables en `.env` (copia `.env.example`; Keycloak en `http://localhost:8080`)
 
 ## Comandos
 
 ```sh
 npm install
+cp .env.example .env # una vez
 npm run dev          # http://localhost:4300
 npm run build        # tsc -b && vite build
 npm run lint

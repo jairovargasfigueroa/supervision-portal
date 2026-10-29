@@ -4,8 +4,11 @@ import { defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // El plugin del router va antes que el de React: genera src/routeTree.gen.ts a partir de src/routes/.
-  plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react()],
+  plugins: [
+    // Va antes que el de React: genera src/routeTree.gen.ts a partir de src/routes/ (las pruebas no son rutas).
+    tanstackRouter({ target: 'react', autoCodeSplitting: true, routeFileIgnorePattern: '\\.test\\.tsx?$' }),
+    react(),
+  ],
   server: { port: 4300, strictPort: true },
   test: {
     environment: 'jsdom',
