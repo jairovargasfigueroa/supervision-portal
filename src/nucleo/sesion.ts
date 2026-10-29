@@ -28,3 +28,55 @@ export function quitarParametrosDeInicioDeSesion(): void {
   }
   window.history.replaceState(window.history.state, document.title, `${url.pathname}${url.search}${url.hash}`);
 }
+
+/** Lo que el portal necesita del usuario con sesión. */
+export interface UsuarioPortal {
+  /** `sub` del token. */
+  id: string;
+  /** Nombre completo (`name`), o el usuario si no hay nombre. */
+  nombre: string;
+  /** Roles del realm (`realm_access.roles` del token de acceso). */
+  roles: string[];
+  /** Cliente de Keycloak con el que se inició sesión. */
+  azp: string | undefined;
+}
+
+interface DatosToken {
+  sub?: string;
+  azp?: string;
+  name?: string;
+  preferred_username?: string;
+  realm_access?: { roles?: unknown };
+}
+
+/**
+ * Lee el usuario de la sesión de oidc-client-ts. Los roles del realm vienen solo en el token de acceso (Keycloak no los
+ * pone en el token de identidad por defecto), así que se lee su contenido; la firma la validan los servicios.
+ */
+export function leerUsuario(
+  usuario: { access_token: string; profile: Record<string, unknown> } | null | undefined,
+): UsuarioPortal | null {
+  if (!usuario) return null;
+  const token = leerDatosToken(usuario.access_token);
+  const perfil = usuario.profile as DatosToken;
+  const roles = token.realm_access?.roles ?? perfil.realm_access?.roles;
+  return {
+    id: token.sub ?? perfil.sub ?? '',
+    nombre: perfil.name ?? token.name ?? perfil.preferred_username ?? token.preferred_username ?? '',
+    roles: Array.isArray(roles) ? roles.filter((rol): rol is string => typeof rol === 'string') : [],
+    azp: token.azp ?? perfil.azp,
+  };
+}
+
+function leerDatosToken(token: string): DatosToken {
+  const contenido = token.split('.')[1];
+  if (!contenido) return {};
+  try {
+    const base64 = contenido.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(contenido.length / 4) * 4, '=');
+    const bytes = Uint8Array.from(atob(base64), (caracter) => caracter.charCodeAt(0));
+    const datos: unknown = JSON.parse(new TextDecoder().decode(bytes));
+    return typeof datos === 'object' && datos !== null ? (datos as DatosToken) : {};
+  } catch {
+    return {};
+  }
+}

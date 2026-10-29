@@ -18,22 +18,26 @@ React 19 + Vite 8, MUI 9 (`@mui/material`, `@mui/icons-material`, `@emotion/reac
 
 ```
 src/
-  main.tsx                     # AuthProvider → QueryClientProvider → ThemeProvider → RouterProvider
-  App.tsx                      # solo fase 1: pantalla base (barra + estado vacío); se reemplaza por routes/ al llegar el router
+  main.tsx                     # valida variables; AuthProvider → QueryClientProvider → ThemeProvider → RouterProvider
   tema.ts
-  routes/                      # TanStack Router por archivos
+  routeTree.gen.ts             # lo genera @tanstack/router-plugin desde routes/ (se sube al repo: `tsc -b` lo necesita; no se edita ni se revisa con lint)
+  routes/                      # TanStack Router por archivos (cada archivo exporta solo `Route`)
     __root.tsx                 # diseño: barra superior con usuario y cerrar sesión; protección de sesión y rol cliente
     index.tsx                  # Mis obras
     obras.$obraId.tsx          # Detalle de obra
     planillas.$planillaId.tsx  # Detalle de planilla, aprobar u observar
-    sin-acceso.tsx
+    sin-acceso.tsx             # usa componentes/SinAcceso.tsx
   api/
     cliente.ts                 # fetch a VITE_OBRAS_URL con el token; Problem Details → error tipado
     obras.ts, planillas.ts     # funciones + queryOptions de TanStack Query
   componentes/
+    BarraSuperior.tsx, SinAcceso.tsx
     TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx, GaleriaFotos.tsx
     ObservarDialogo.tsx (TanStack Form + Zod: motivo 10–500), AprobarDialogo.tsx
   nucleo/
+    configuracion.ts           # variables VITE_* validadas con Zod (leerConfiguracion)
+    sesion.ts                  # configuración de react-oidc-context y leerUsuario (nombre, roles y azp del token)
+    roles.ts                   # rolesEfectivos(roles, azp) y tieneAcceso(roles, azp)
     formato.ts, errores.ts
 ```
 
@@ -44,7 +48,14 @@ Las pruebas van junto al código, con sufijo `.test.ts` / `.test.tsx` (`nucleo/f
 - Datos siempre con TanStack Query (`queryOptions` por recurso; `refetchInterval: 2000` mientras la planilla está `APROBANDO`).
 - Mutaciones (`aprobar`, `observar`) invalidan las consultas de la planilla y de la obra.
 - Los parámetros de ruta se validan con Zod en la definición de la ruta.
-- Variables de entorno `VITE_KEYCLOAK_URL`, `VITE_OBRAS_URL` validadas al iniciar con Zod.
+- Variables de entorno `VITE_KEYCLOAK_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT_ID` y `VITE_OBRAS_URL` (`.env`, copia de `.env.example`) validadas al iniciar con Zod.
+
+## Sesión (001)
+
+- `AuthProvider` de react-oidc-context con `authority = ${VITE_KEYCLOAK_URL}/realms/${VITE_KEYCLOAK_REALM}`, `client_id = portal`, `redirect_uri` y `post_logout_redirect_uri` = origen del portal, `automaticSilentRenew` y PKCE (por defecto). Al volver de Keycloak, `onSigninCallback` quita `code`, `state`, `session_state` e `iss` de la URL.
+- `routes/__root.tsx` protege todas las rutas: sin sesión llama a `signinRedirect()`; si la renovación del token falla o el token vence, vuelve a `signinRedirect()`; sin rol `cliente` lleva a `/sin-acceso`, y con él no deja entrar a `/sin-acceso`.
+- Los roles del realm vienen solo en el token de acceso (Keycloak no los pone en el de identidad), así que `leerUsuario` lee su contenido (sin validar la firma: eso lo hacen los servicios).
+- Usuario con varios roles (`docs/convenciones.md`): solo cuentan los roles del `azp` del token; en el portal, `cliente`. `demo1` (residente y cliente) entra como cliente.
 
 ## Pruebas
 
