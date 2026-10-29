@@ -18,7 +18,7 @@ React 19 + Vite 8, MUI 9 (`@mui/material`, `@mui/icons-material`, `@emotion/reac
 
 ```
 src/
-  main.tsx                     # valida variables; AuthProvider → QueryClientProvider → ThemeProvider → RouterProvider
+  main.tsx                     # valida variables; AuthProvider → ProveedorClienteObras → QueryClientProvider → ThemeProvider → RouterProvider
   tema.ts
   routeTree.gen.ts             # lo genera @tanstack/router-plugin desde routes/ (se sube al repo: `tsc -b` lo necesita; no se edita ni se revisa con lint)
   routes/                      # TanStack Router por archivos (cada archivo exporta solo `Route`)
@@ -28,25 +28,34 @@ src/
     planillas.$planillaId.tsx  # Detalle de planilla, aprobar u observar
     sin-acceso.tsx             # usa componentes/SinAcceso.tsx
   api/
-    cliente.ts                 # fetch a VITE_OBRAS_URL con el token; Problem Details → error tipado
-    obras.ts, planillas.ts     # funciones + queryOptions de TanStack Query
+    cliente.ts                 # fetch a VITE_OBRAS_URL con el token; Problem Details → ErrorApi; ProveedorClienteObras / useClienteObras; reintentos de TanStack Query
+    obras.ts, planillas.ts     # tipos del contrato, funciones + queryOptions de TanStack Query
   componentes/
     BarraSuperior.tsx, SinAcceso.tsx
-    TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx, GaleriaFotos.tsx
+    TablaDatos.tsx             # TanStack Table + Table de MUI; en el celular, columnas `meta.secundaria` en un detalle desplegable
+    EstadoChip.tsx             # chip de estado (y EstadoPlanillaChip con las etiquetas de docs/mensajes.md)
+    EstadoVacio.tsx, EstadoError.tsx, GaleriaFotos.tsx
+    Seccion.tsx                # tarjeta de sección con título (cada sección carga y falla por su cuenta) y Cargando
+    BarraPorcentaje.tsx        # etiqueta, % y barra (avance físico, plazo transcurrido)
+    Enlaces.tsx                # BotonEnlace y TarjetaEnlace: MUI con createLink de TanStack Router
     ObservarDialogo.tsx (TanStack Form + Zod: motivo 10–500), AprobarDialogo.tsx
   nucleo/
     configuracion.ts           # variables VITE_* validadas con Zod (leerConfiguracion)
     sesion.ts                  # configuración de react-oidc-context y leerUsuario (nombre, roles y azp del token)
     roles.ts                   # rolesEfectivos(roles, azp) y tieneAcceso(roles, azp)
-    formato.ts, errores.ts
+    formato.ts, errores.ts     # errores.ts: codigo → texto de docs/mensajes.md
+    esperaAprobacion.ts        # useEsperaAprobacion: consulta cada 2 s mientras APROBANDO, aviso a los 90 s, corte a los 4 min
+  pruebas/
+    portalSimulado.tsx         # solo para las pruebas: sesión de cliente, Obras simulado (fetch) y datos de prueba
 ```
 
 Las pruebas van junto al código, con sufijo `.test.ts` / `.test.tsx` (`nucleo/formato.test.ts`, `componentes/estados.test.tsx`).
 
 ## Reglas
 
-- Datos siempre con TanStack Query (`queryOptions` por recurso; `refetchInterval: 2000` mientras la planilla está `APROBANDO`).
+- Datos siempre con TanStack Query (`queryOptions` por recurso; `refetchInterval: 2000` mientras la planilla está `APROBANDO`, lo decide `useEsperaAprobacion`: a los 90 s muestra el aviso de demora y a los 4 minutos deja de consultar y ofrece «Actualizar»).
 - Mutaciones (`aprobar`, `observar`) invalidan las consultas de la planilla y de la obra.
+- Toda llamada a Obras pasa por `useClienteObras()` (token vigente en cada pedido, tiempo máximo de 30 s). Los errores son `ErrorApi` (`tipo`: `respuesta`, `red` o `tiempo`; `estado`, `codigo`, `errores[]`) y el texto lo da `mensajeDeError` de `nucleo/errores.ts`; nunca se muestra el `detail` del servicio. Las consultas se reintentan solo ante red, tiempo o 5xx (hasta 2 veces).
 - Los parámetros de ruta se validan con Zod en la definición de la ruta.
 - Variables de entorno `VITE_KEYCLOAK_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT_ID` y `VITE_OBRAS_URL` (`.env`, copia de `.env.example`) validadas al iniciar con Zod.
 
@@ -59,4 +68,4 @@ Las pruebas van junto al código, con sufijo `.test.ts` / `.test.tsx` (`nucleo/f
 
 ## Pruebas
 
-Vitest + Testing Library: rutas protegidas, diálogo de observar (validación), formato, estados vacío y error. `npm test` (`vitest run`, entorno `jsdom`, configurado en `vite.config.ts`). Sin `globals`: cada prueba importa `describe`/`it`/`expect` de `vitest` y las de componentes llaman a `cleanup` en `afterEach`.
+Vitest + Testing Library: rutas protegidas, diálogo de observar (validación), formato, estados vacío y error. Las pantallas (`routes/obras.test.tsx`, `routes/planillas.test.tsx`) se prueban con las rutas reales y Obras simulado (`pruebas/portalSimulado.tsx`, que inyecta un `fetch` en el cliente); la espera de la saga, con relojes simulados de Vitest. `npm test` (`vitest run`, entorno `jsdom`, configurado en `vite.config.ts`). Sin `globals`: cada prueba importa `describe`/`it`/`expect` de `vitest` y las de componentes llaman a `cleanup` en `afterEach`.

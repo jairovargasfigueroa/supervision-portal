@@ -1,8 +1,10 @@
 import { ThemeProvider } from '@mui/material/styles';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { type AuthContextProps, hasAuthParams, useAuth } from 'react-oidc-context';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { crearClienteObras, ProveedorClienteObrasFijo } from '../api/cliente';
 import { routeTree } from '../routeTree.gen';
 import { tema } from '../tema';
 
@@ -60,10 +62,20 @@ const conSesion = (nombre: string, roles: string[], azp?: string) =>
 
 function montar(ruta = '/') {
   const router = createRouter({ routeTree, history: createMemoryHistory({ initialEntries: [ruta] }) });
+  // Obras simulado: el cliente todavía no tiene obras.
+  const cliente = crearClienteObras({
+    urlBase: 'http://obras',
+    obtenerToken: () => 't',
+    fetch: async () => new Response('[]', { status: 200 }),
+  });
   render(
-    <ThemeProvider theme={tema}>
-      <RouterProvider router={router} />
-    </ThemeProvider>,
+    <ProveedorClienteObrasFijo cliente={cliente}>
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <ThemeProvider theme={tema}>
+          <RouterProvider router={router} />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ProveedorClienteObrasFijo>,
   );
   return router;
 }

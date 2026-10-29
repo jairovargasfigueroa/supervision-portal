@@ -1,10 +1,11 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AuthProvider } from 'react-oidc-context';
+import { crearClienteConsultas, ProveedorClienteObras } from './api/cliente.ts';
 import { leerConfiguracion } from './nucleo/configuracion.ts';
 import { crearConfiguracionOidc } from './nucleo/sesion.ts';
 import { routeTree } from './routeTree.gen.ts';
@@ -14,7 +15,7 @@ import { tema } from './tema.ts';
 const configuracion = leerConfiguracion(import.meta.env);
 const configuracionOidc = crearConfiguracionOidc(configuracion, window.location.origin);
 
-const clienteConsultas = new QueryClient();
+const clienteConsultas = crearClienteConsultas();
 const router = createRouter({ routeTree });
 
 declare module '@tanstack/react-router' {
@@ -26,12 +27,14 @@ declare module '@tanstack/react-router' {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider {...configuracionOidc}>
-      <QueryClientProvider client={clienteConsultas}>
-        <ThemeProvider theme={tema}>
-          <CssBaseline />
-          <RouterProvider router={router} />
-        </ThemeProvider>
-      </QueryClientProvider>
+      <ProveedorClienteObras urlBase={configuracion.obrasUrl}>
+        <QueryClientProvider client={clienteConsultas}>
+          <ThemeProvider theme={tema}>
+            <CssBaseline />
+            <RouterProvider router={router} />
+          </ThemeProvider>
+        </QueryClientProvider>
+      </ProveedorClienteObras>
     </AuthProvider>
   </StrictMode>,
 );

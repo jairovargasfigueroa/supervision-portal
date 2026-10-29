@@ -4,6 +4,7 @@ import {
   formatearFecha,
   formatearFechaHora,
   formatearMonto,
+  formatearPeriodo,
   formatearPorcentaje,
 } from './formato';
 
@@ -35,5 +36,11 @@ describe('formato', () => {
     expect(formatearFecha('2026-11-16T02:00:00Z')).toBe('15/11/2026');
     expect(formatearFechaHora('2026-11-15T18:30:00Z')).toBe('15/11/2026 14:30');
     expect(formatearFechaHora('2026-11-16T03:05:00Z')).toBe('15/11/2026 23:05');
+  });
+
+  it('formatea periodos con el mes en palabras', () => {
+    expect(formatearPeriodo('2026-11')).toBe('Noviembre 2026');
+    expect(formatearPeriodo('2027-01')).toBe('Enero 2027');
+    expect(formatearPeriodo('otro')).toBe('otro');
   });
 });

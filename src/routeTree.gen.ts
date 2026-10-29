@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SinAccesoRouteImport } from './routes/sin-acceso'
+import { Route as ObrasObraIdRouteImport } from './routes/obras.$obraId'
+import { Route as PlanillasPlanillaIdRouteImport } from './routes/planillas.$planillaId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +24,54 @@ const SinAccesoRoute = SinAccesoRouteImport.update({
   path: '/sin-acceso',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ObrasObraIdRoute = ObrasObraIdRouteImport.update({
+  id: '/obras/$obraId',
+  path: '/obras/$obraId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanillasPlanillaIdRoute = PlanillasPlanillaIdRouteImport.update({
+  id: '/planillas/$planillaId',
+  path: '/planillas/$planillaId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sin-acceso': typeof SinAccesoRoute
+  '/obras/$obraId': typeof ObrasObraIdRoute
+  '/planillas/$planillaId': typeof PlanillasPlanillaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sin-acceso': typeof SinAccesoRoute
+  '/obras/$obraId': typeof ObrasObraIdRoute
+  '/planillas/$planillaId': typeof PlanillasPlanillaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/sin-acceso': typeof SinAccesoRoute
+  '/obras/$obraId': typeof ObrasObraIdRoute
+  '/planillas/$planillaId': typeof PlanillasPlanillaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sin-acceso'
+  fullPaths: '/' | '/sin-acceso' | '/obras/$obraId' | '/planillas/$planillaId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sin-acceso'
-  id: '__root__' | '/' | '/sin-acceso'
+  to: '/' | '/sin-acceso' | '/obras/$obraId' | '/planillas/$planillaId'
+  id:
+    | '__root__'
+    | '/'
+    | '/sin-acceso'
+    | '/obras/$obraId'
+    | '/planillas/$planillaId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SinAccesoRoute: typeof SinAccesoRoute
+  ObrasObraIdRoute: typeof ObrasObraIdRoute
+  PlanillasPlanillaIdRoute: typeof PlanillasPlanillaIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +90,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SinAccesoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/obras/$obraId': {
+      id: '/obras/$obraId'
+      path: '/obras/$obraId'
+      fullPath: '/obras/$obraId'
+      preLoaderRoute: typeof ObrasObraIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planillas/$planillaId': {
+      id: '/planillas/$planillaId'
+      path: '/planillas/$planillaId'
+      fullPath: '/planillas/$planillaId'
+      preLoaderRoute: typeof PlanillasPlanillaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SinAccesoRoute: SinAccesoRoute,
+  ObrasObraIdRoute: ObrasObraIdRoute,
+  PlanillasPlanillaIdRoute: PlanillasPlanillaIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
