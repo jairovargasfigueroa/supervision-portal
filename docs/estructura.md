@@ -32,13 +32,20 @@ src/
     obras.ts, planillas.ts     # tipos del contrato, funciones + queryOptions de TanStack Query
   componentes/
     BarraSuperior.tsx, SinAcceso.tsx
-    TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx, GaleriaFotos.tsx
+    TablaDatos.tsx             # TanStack Table + Table de MUI; en el celular, columnas `meta.secundaria` en un detalle desplegable
+    EstadoChip.tsx             # chip de estado (y EstadoPlanillaChip con las etiquetas de docs/mensajes.md)
+    EstadoVacio.tsx, EstadoError.tsx, GaleriaFotos.tsx
+    Seccion.tsx                # tarjeta de sección con título (cada sección carga y falla por su cuenta) y Cargando
+    BarraPorcentaje.tsx        # etiqueta, % y barra (avance físico, plazo transcurrido)
+    Enlaces.tsx                # BotonEnlace y TarjetaEnlace: MUI con createLink de TanStack Router
     ObservarDialogo.tsx (TanStack Form + Zod: motivo 10–500), AprobarDialogo.tsx
   nucleo/
     configuracion.ts           # variables VITE_* validadas con Zod (leerConfiguracion)
     sesion.ts                  # configuración de react-oidc-context y leerUsuario (nombre, roles y azp del token)
     roles.ts                   # rolesEfectivos(roles, azp) y tieneAcceso(roles, azp)
-    formato.ts, errores.ts
+    formato.ts, errores.ts     # errores.ts: codigo → texto de docs/mensajes.md
+  pruebas/
+    portalSimulado.tsx         # solo para las pruebas: sesión de cliente, Obras simulado (fetch) y datos de prueba
 ```
 
 Las pruebas van junto al código, con sufijo `.test.ts` / `.test.tsx` (`nucleo/formato.test.ts`, `componentes/estados.test.tsx`).
