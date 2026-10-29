@@ -1,0 +1,2 @@
+# Lo genera el plugin de TanStack Router con LF: así Git no lo marca como cambiado en Windows (core.autocrlf)
+src/routeTree.gen.ts text eol=lf
