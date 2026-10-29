@@ -10,11 +10,16 @@ React 19 + Vite 8, MUI 9 (`@mui/material`, `@mui/icons-material`, `@emotion/reac
 
 `src/tema.ts` con los mismos valores que los microfrontends React (`docs/diseno-visual.md`); `CssBaseline` normal (no hay Shadow DOM). Fuentes Inter e IBM Plex Mono en `index.html`. Densidad normal (no compacta).
 
+- `tema.ts` exporta `tema` (el `createTheme`), `colores` (todos los tokens, también los suaves para chips y avisos) y `estiloNumero` (IBM Plex Mono con `tabular-nums`). Para números sueltos: `<Typography variant="numero">`.
+- Botones y campos con radio 6 (`MuiButton`, `MuiOutlinedInput`), chips 999; el resto 10. Botones sin mayúsculas forzadas y de al menos 44 px de alto (objetivo táctil).
+- Iconos de `@mui/icons-material` 9 por ruta (`@mui/icons-material/InboxOutlined`). En la 9 algunos nombres cambiaron (por ejemplo `ErrorOutline` es `ErrorOutlineOutlined`).
+
 ## Árbol
 
 ```
 src/
   main.tsx                     # AuthProvider → QueryClientProvider → ThemeProvider → RouterProvider
+  App.tsx                      # solo fase 1: pantalla base (barra + estado vacío); se reemplaza por routes/ al llegar el router
   tema.ts
   routes/                      # TanStack Router por archivos
     __root.tsx                 # diseño: barra superior con usuario y cerrar sesión; protección de sesión y rol cliente
@@ -32,6 +37,8 @@ src/
     formato.ts, errores.ts
 ```
 
+Las pruebas van junto al código, con sufijo `.test.ts` / `.test.tsx` (`nucleo/formato.test.ts`, `componentes/estados.test.tsx`).
+
 ## Reglas
 
 - Datos siempre con TanStack Query (`queryOptions` por recurso; `refetchInterval: 2000` mientras la planilla está `APROBANDO`).
@@ -41,4 +48,4 @@ src/
 
 ## Pruebas
 
-Vitest + Testing Library: rutas protegidas, diálogo de observar (validación), formato.
+Vitest + Testing Library: rutas protegidas, diálogo de observar (validación), formato, estados vacío y error. `npm test` (`vitest run`, entorno `jsdom`, configurado en `vite.config.ts`). Sin `globals`: cada prueba importa `describe`/`it`/`expect` de `vitest` y las de componentes llaman a `cleanup` en `afterEach`.
