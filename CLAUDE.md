@@ -23,14 +23,9 @@ npm test             # vitest run
 npm run preview      # sirve lo compilado
 ```
 
-## Estructura prevista
+## Estructura
 
-```
-src/
-  obras/          mis obras, avance y fotos publicadas
-  planillas/      detalle, aprobar u observar (con motivo)
-  auth/           sesión con Keycloak
-```
+Ver `docs/estructura.md` (obligatorio): `routes/`, `api/`, `componentes/`, `nucleo/` y `tema.ts`.
 
 ## Reglas del proyecto
 
