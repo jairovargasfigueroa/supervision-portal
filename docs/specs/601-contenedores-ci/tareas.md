@@ -1,11 +1,10 @@
-# 601 · Contenedores y CI/CD · tareas de `frontend/portal`
+# 601 · Preparar el despliegue · tareas de `frontend/portal`
 
-Requisitos y diseño: `docs/specs/601-contenedores-ci/` de la carpeta que agrupa los proyectos. Contratos: `docs/contratos.md` de este proyecto.
+Requisitos y diseño: `docs/specs/601-contenedores-ci/` de la carpeta que agrupa los proyectos. Al implementarla, estas tareas reemplazan a `frontend/portal/docs/specs/601-contenedores-ci/tareas.md` (eran del borrador anterior).
 
 Marca cada tarea al terminarla (con sus pruebas y su commit).
 
-- [ ] `VITE_OBRAS_URL` (008) y `VITE_KEYCLOAK_URL` (propuesto; hoy la 001 fija la URL en el código) de producción al compilar
-- [ ] `staticwebapp.config.json` con `navigationFallback` a `index.html`
-- [ ] `Dockerfile` (`node:24-alpine` para compilar, `nginxinc/nginx-unprivileged:1.29-alpine` para servir) con `nginx.conf` propio y `.dockerignore`
-- [ ] `.github/workflows/ci-cd.yml`: pruebas y build; imagen nginx en GHCR; despliegue de los archivos estáticos con `Azure/static-web-apps-deploy@v1`
-- [ ] Comprobar: la imagen sirve la aplicación en el puerto 8080 sin `root`
+- [x] Aplicar «Cambios a contratos y datos» que tocan este proyecto (`docs/`, `CLAUDE.md`, `.env.example`)
+- [ ] Cargar `configuracion.json` antes de montar React (Keycloak, Obras y ERP) con respaldo a los valores de desarrollo; pruebas
+- [ ] Plantilla `configuracion.json.plantilla` que usa el script de publicación de infra
+- [ ] `.github/workflows/ci.yml`: job `prueba` (lint, pruebas y compilación) y job `archivos`

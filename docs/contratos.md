@@ -7,7 +7,8 @@
 | Desde | Qué |
 |---|---|
 | Keycloak | Inicio de sesión OIDC (realm `supervision`, cliente público `portal` con PKCE) |
-| Obras (REST, `VITE_OBRAS_URL`) | Mis obras, avance, fotos publicadas, planillas; aprobar u observar planilla (abajo) |
+| `configuracion.json` (601) | Al publicar: `{ keycloakUrl, keycloakRealm, obrasUrl, erpUrl }`, escrito por el script de `infra` desde `configuracion.json.plantilla`; se lee antes de montar React. Sin el archivo (desarrollo), `.env` y los valores de desarrollo |
+| Obras (REST, `obrasUrl`; en desarrollo `VITE_OBRAS_URL`) | Mis obras, avance, fotos publicadas, planillas; aprobar u observar planilla (abajo) |
 
 ## Obras (REST)
 
@@ -26,3 +27,13 @@ Todas las llamadas llevan `Authorization: Bearer <token de acceso>` (el de `reac
 ## Errores
 
 Problem Details con `codigo` (`docs/convenciones.md`). El texto para el usuario sale de `src/nucleo/errores.ts` (copiado de `docs/mensajes.md`); un código desconocido muestra el genérico de su estado. Códigos propios que espera el portal: `OBRA_NO_ENCONTRADA`, `PLANILLA_NO_ENCONTRADA`, `PLANILLA_NO_PRESENTADA` (409) y `MOTIVO_INVALIDO` (422). Un `503 SERVICIO_NO_DISPONIBLE` en las fotos (por ejemplo, S3 sin configurar) solo deja en error la sección de fotos.
+
+## Publicación (601)
+
+Se compila una vez (`npm run build`, carpeta `dist/`) y se publica como archivos estáticos. Al publicar, el script de `infra` (`produccion-local/publicar-frontends`, y en la 602 el de la nube) escribe con `envsubst`:
+
+| Plantilla (raíz del repo) | Archivo publicado | Variables |
+|---|---|---|
+| `configuracion.json.plantilla` | `configuracion.json` | `KEYCLOAK_URL` (sin `/` final), `KEYCLOAK_REALM`, `OBRAS_URL` (dirección base de Obras), `ERP_URL` (dirección del shell del ERP) |
+
+Reglas del servidor de estáticos: SPA (si el archivo no existe, `index.html`) y sin caché en `index.html` y `configuracion.json`.

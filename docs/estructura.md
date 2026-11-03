@@ -18,7 +18,7 @@ React 19 + Vite 8, MUI 9 (`@mui/material`, `@mui/icons-material`, `@emotion/reac
 
 ```
 src/
-  main.tsx                     # valida variables; AuthProvider → ProveedorClienteObras → QueryClientProvider → ThemeProvider → RouterProvider
+  main.tsx                     # carga configuracion.json (601) y valida; luego monta AuthProvider → ProveedorClienteObras → QueryClientProvider → ThemeProvider → RouterProvider
   tema.ts
   routeTree.gen.ts             # lo genera @tanstack/router-plugin desde routes/ (se sube al repo: `tsc -b` lo necesita; no se edita ni se revisa con lint)
   routes/                      # TanStack Router por archivos (cada archivo exporta solo `Route`)
@@ -40,7 +40,7 @@ src/
     Enlaces.tsx                # BotonEnlace y TarjetaEnlace: MUI con createLink de TanStack Router
     ObservarDialogo.tsx (TanStack Form + Zod: motivo 10–500), AprobarDialogo.tsx
   nucleo/
-    configuracion.ts           # variables VITE_* validadas con Zod (leerConfiguracion)
+    configuracion.ts           # cargarConfiguracion (601): configuracion.json al publicar; respaldo VITE_* de .env y valores de desarrollo; validada con Zod
     sesion.ts                  # configuración de react-oidc-context y leerUsuario (nombre, roles y azp del token)
     roles.ts                   # rolesEfectivos(roles, azp) y tieneAcceso(roles, azp)
     formato.ts, errores.ts     # errores.ts: codigo → texto de docs/mensajes.md
@@ -57,7 +57,7 @@ Las pruebas van junto al código, con sufijo `.test.ts` / `.test.tsx` (`nucleo/f
 - Mutaciones (`aprobar`, `observar`) invalidan las consultas de la planilla y de la obra.
 - Toda llamada a Obras pasa por `useClienteObras()` (token vigente en cada pedido, tiempo máximo de 30 s). Los errores son `ErrorApi` (`tipo`: `respuesta`, `red` o `tiempo`; `estado`, `codigo`, `errores[]`) y el texto lo da `mensajeDeError` de `nucleo/errores.ts`; nunca se muestra el `detail` del servicio. Las consultas se reintentan solo ante red, tiempo o 5xx (hasta 2 veces).
 - Los parámetros de ruta se validan con Zod en la definición de la ruta.
-- Variables de entorno `VITE_KEYCLOAK_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT_ID` y `VITE_OBRAS_URL` (`.env`, copia de `.env.example`) validadas al iniciar con Zod.
+- Configuración (601): antes de montar React, `cargarConfiguracion` lee `configuracion.json` (junto a `index.html`; lo escribe al publicar el script de `infra` desde `configuracion.json.plantilla`: `keycloakUrl`, `keycloakRealm`, `obrasUrl`, `erpUrl`). Lo que no traiga sale de las variables `VITE_KEYCLOAK_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT_ID`, `VITE_OBRAS_URL` y `VITE_ERP_URL` (`.env`, copia de `.env.example`) y, si tampoco están, de los valores de desarrollo (los de `.env.example`). Todo se valida con Zod al iniciar. Así la misma compilación sirve en desarrollo y en cualquier nube.
 
 ## Sesión (001)
 
