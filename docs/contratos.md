@@ -7,7 +7,7 @@
 | Desde | Qué |
 |---|---|
 | Keycloak | Inicio de sesión OIDC (realm `supervision`, cliente público `portal` con PKCE) |
-| `configuracion.json` (601) | Al publicar: `{ keycloakUrl, keycloakRealm, obrasUrl, erpUrl }`, escrito por el script de `infra` desde `configuracion.json.plantilla`; se lee antes de montar React. Sin el archivo (desarrollo), `.env` y los valores de desarrollo |
+| `configuracion.json` (601) | Al publicar: `{ keycloakUrl, keycloakRealm, obrasUrl, erpUrl }`, escrito por el script de `infra` desde `configuracion.json.plantilla`; se lee antes de montar React. Sin el archivo (desarrollo), `.env` y los valores de desarrollo. En la compilación publicada, sin el archivo o con un campo de menos, el portal no arranca y la consola dice por qué (nunca usa `.env` ni los valores de desarrollo) |
 | Obras (REST, `obrasUrl`; en desarrollo `VITE_OBRAS_URL`) | Mis obras, avance, fotos publicadas, planillas; aprobar u observar planilla (abajo) |
 
 ## Obras (REST)

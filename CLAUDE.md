@@ -28,7 +28,7 @@ npm run preview      # sirve lo compilado
 
 ## Configuración y publicación (601)
 
-- Se compila **una vez** y se publica como archivos estáticos (sin imagen Docker). Las direcciones salen de `configuracion.json`, que el script de `infra` escribe al publicar desde `configuracion.json.plantilla`; `src/main.tsx` lo lee antes de montar React y, si no está (desarrollo), usa `.env` y, si falta, los valores de desarrollo.
+- Se compila **una vez** y se publica como archivos estáticos (sin imagen Docker). Las direcciones salen de `configuracion.json`, que el script de `infra` escribe al publicar desde `configuracion.json.plantilla`; `src/main.tsx` lo lee antes de montar React y, si no está (desarrollo), usa `.env` y, si falta, los valores de desarrollo; en la compilación publicada, sin el archivo (o incompleto) no arranca.
 - Variables y reglas del servidor de estáticos: `docs/contratos.md` («Publicación»). CI en `.github/workflows/ci.yml`.
 
 ## Estructura

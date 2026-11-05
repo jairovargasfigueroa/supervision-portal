@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { cargarConfiguracion, ENTORNO_DESARROLLO, entornoPublicado, leerConfiguracion } from './configuracion';
+import {
+  cargarConfiguracion,
+  ENTORNO_DESARROLLO,
+  entornoPublicado,
+  esDesarrollo,
+  leerConfiguracion,
+} from './configuracion';
 
 const entornoValido = {
   VITE_KEYCLOAK_URL: 'http://localhost:8080',
@@ -128,3 +134,42 @@ describe('cargarConfiguracion (601)', () => {
     ).rejects.toThrow(/VITE_OBRAS_URL/);
   });
 });
+
+describe('compilación publicada (601)', () => {
+  it('es desarrollo con vite o con la versión compilada en localhost, no en una publicación', () => {
+    expect(esDesarrollo(true, 'portal.azure.localhost')).toBe(true);
+    expect(esDesarrollo(false, 'localhost')).toBe(true);
+    expect(esDesarrollo(false, '127.0.0.1')).toBe(true);
+    expect(esDesarrollo(false, 'portal.azure.localhost')).toBe(false);
+  });
+
+  it('toma todo de configuracion.json e ignora .env (el cliente sigue siendo portal)', async () => {
+    const configuracion = await cargarConfiguracion(
+      { ...entornoValido, VITE_ERP_URL: 'http://localhost:4200' },
+      async () => respuestaJson(publicada),
+      false,
+    );
+
+    expect(configuracion).toEqual({
+      keycloakUrl: publicada.keycloakUrl,
+      realm: 'supervision',
+      clientId: 'portal',
+      obrasUrl: publicada.obrasUrl,
+      erpUrl: publicada.erpUrl,
+    });
+  });
+
+  it('rechaza sin el archivo, si no es JSON o si le falta un campo (nunca usa .env ni localhost)', async () => {
+    await expect(
+      cargarConfiguracion(entornoValido, async () => new Response('No encontrado', { status: 404 }), false),
+    ).rejects.toThrow(/respondió 404/);
+    await expect(
+      cargarConfiguracion(entornoValido, async () => new Response('<!doctype html><html></html>', { status: 200 }), false),
+    ).rejects.toThrow(/no es JSON/);
+    const { erpUrl: _sinErp, ...incompleta } = publicada;
+    await expect(cargarConfiguracion(entornoValido, async () => respuestaJson(incompleta), false)).rejects.toThrow(
+      /VITE_ERP_URL/,
+    );
+  });
+});
+

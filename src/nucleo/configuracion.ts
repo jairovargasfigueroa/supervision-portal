@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 // Configuración del portal (601). La compilación es una sola: al publicar, el script de infra escribe
 // configuracion.json junto a index.html (configuracion.json.plantilla). En desarrollo el archivo no está y se usan
-// las variables VITE_* de .env (docs/entorno-local.md) o, si faltan, los valores de desarrollo de .env.example.
+// las variables VITE_* de .env (docs/entorno-local.md) o, si faltan, los valores de desarrollo de .env.example. En la
+// compilación publicada solo vale configuracion.json: sin el archivo o con un campo de menos, el portal no arranca.
 
 /** Valores de desarrollo (los de .env.example). */
 export const ENTORNO_DESARROLLO = {
@@ -42,10 +43,27 @@ const sinBarraFinal = (url: string) => url.replace(/\/+$/, '');
 /** Un texto no vacío, o `undefined` (así manda el siguiente respaldo). */
 const texto = (valor: unknown) => (typeof valor === 'string' && valor.trim() !== '' ? valor : undefined);
 
-/** Valida las variables; si alguna no es válida, lanza un error que dice cuál. Las que faltan toman el valor de desarrollo. */
-export function leerConfiguracion(entorno: Record<string, unknown>): Configuracion {
+/**
+ * Desarrollo: `vite`, o la versión compilada servida en localhost (`vite preview`). Una publicación (producción local
+ * en `*.localhost` o la nube) nunca lo es.
+ */
+export function esDesarrollo(
+  modoDesarrollo: boolean = import.meta.env.DEV,
+  host: string = globalThis.location?.hostname ?? '',
+): boolean {
+  return modoDesarrollo || host === 'localhost' || host === '127.0.0.1';
+}
+
+/**
+ * Valida las variables; si alguna no es válida, lanza un error que dice cuál. En desarrollo, las que faltan toman el
+ * valor de desarrollo; publicado, solo el cliente (`portal`), que no es una dirección.
+ */
+export function leerConfiguracion(entorno: Record<string, unknown>, desarrollo = true): Configuracion {
+  const respaldo: Record<string, string> = desarrollo
+    ? ENTORNO_DESARROLLO
+    : { VITE_KEYCLOAK_CLIENT_ID: ENTORNO_DESARROLLO.VITE_KEYCLOAK_CLIENT_ID };
   const conRespaldo = Object.fromEntries(
-    Object.entries(ENTORNO_DESARROLLO).map(([nombre, desarrollo]) => [nombre, entorno[nombre] ?? desarrollo]),
+    Object.keys(ENTORNO_DESARROLLO).map((nombre) => [nombre, entorno[nombre] ?? respaldo[nombre]]),
   );
   const resultado = esquemaEntorno.safeParse(conRespaldo);
   if (!resultado.success) {
@@ -79,11 +97,19 @@ export function entornoPublicado(datos: unknown): Record<string, string> {
   return entorno;
 }
 
-async function leerArchivoPublicado(obtener: typeof fetch): Promise<Record<string, string>> {
+async function leerArchivoPublicado(obtener: typeof fetch, desarrollo: boolean): Promise<Record<string, string>> {
   try {
     const respuesta = await obtener('/configuracion.json', { cache: 'no-cache' });
-    return respuesta.ok ? entornoPublicado(await respuesta.json()) : {};
-  } catch {
+    if (!respuesta.ok) {
+      throw new Error(`configuracion.json del portal respondió ${respuesta.status} (lo escribe infra al publicar).`);
+    }
+    return entornoPublicado(await respuesta.json());
+  } catch (error) {
+    if (!desarrollo) {
+      throw error instanceof SyntaxError
+        ? new Error('configuracion.json del portal no es JSON: falta el archivo (lo escribe infra al publicar).')
+        : error;
+    }
     // Sin el archivo (el servidor de desarrollo de Vite devuelve index.html) o sin red: se usa .env
     return {};
   }
@@ -91,14 +117,18 @@ async function leerArchivoPublicado(obtener: typeof fetch): Promise<Record<strin
 
 /**
  * Carga la configuración antes de montar React: configuracion.json (al publicar) manda sobre las variables VITE_* de
- * .env y estas sobre los valores de desarrollo. Rechaza solo si un valor no es válido.
+ * .env y estas sobre los valores de desarrollo. En desarrollo rechaza solo si un valor no es válido; publicado, también
+ * si falta el archivo o uno de sus campos (nunca usa .env ni los valores de desarrollo).
  */
 export async function cargarConfiguracion(
   entorno: Record<string, unknown>,
   obtener: typeof fetch = (entrada, opciones) => fetch(entrada, opciones),
+  desarrollo: boolean = esDesarrollo(),
 ): Promise<Configuracion> {
   const variables = Object.fromEntries(
-    Object.keys(ENTORNO_DESARROLLO).map((nombre) => [nombre, texto(entorno[nombre])]),
+    Object.keys(ENTORNO_DESARROLLO)
+      .filter((nombre) => desarrollo || nombre === 'VITE_KEYCLOAK_CLIENT_ID')
+      .map((nombre) => [nombre, texto(entorno[nombre])]),
   );
-  return leerConfiguracion({ ...variables, ...(await leerArchivoPublicado(obtener)) });
+  return leerConfiguracion({ ...variables, ...(await leerArchivoPublicado(obtener, desarrollo)) }, desarrollo);
 }
