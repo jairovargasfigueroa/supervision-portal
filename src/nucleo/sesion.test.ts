@@ -6,6 +6,7 @@ const configuracion = {
   realm: 'supervision',
   clientId: 'portal',
   obrasUrl: 'http://localhost:8081',
+  erpUrl: 'http://localhost:4200',
 };
 
 describe('crearConfiguracionOidc', () => {

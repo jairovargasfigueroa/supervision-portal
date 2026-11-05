@@ -1,0 +1,6 @@
+{
+  "keycloakUrl": "${KEYCLOAK_URL}",
+  "keycloakRealm": "${KEYCLOAK_REALM}",
+  "obrasUrl": "${OBRAS_URL}",
+  "erpUrl": "${ERP_URL}"
+}
