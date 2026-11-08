@@ -52,6 +52,18 @@ export function formatearFecha(fecha: string): string {
   return fechas.format(new Date(fecha));
 }
 
+const meses = new Intl.DateTimeFormat(LOCALE, { timeZone: 'UTC', month: 'long' });
+
+/** `Noviembre 2026` para el periodo `2026-11` (igual que mf-obras). Si no es un periodo, lo devuelve tal cual. */
+export function formatearPeriodo(periodo: string): string {
+  const coincide = /^(\d{4})-(\d{2})$/.exec(periodo);
+  if (!coincide) return periodo;
+  const anio = Number(coincide[1]);
+  const mes = Number(coincide[2]);
+  const nombre = meses.format(new Date(Date.UTC(anio, mes - 1, 1)));
+  return `${nombre.charAt(0).toUpperCase()}${nombre.slice(1)} ${anio}`;
+}
+
 /** `15/11/2026 14:30` en hora de La Paz. `Intl` da `15/11/2026, 14:30`: se quita la coma. */
 export function formatearFechaHora(instante: string): string {
   return fechasHoras.format(new Date(instante)).replace(', ', ' ');

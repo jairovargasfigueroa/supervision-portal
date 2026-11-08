@@ -4,24 +4,32 @@ Aplicación web externa para el cliente: ver el avance de sus obras con fotos y 
 
 Parte de la «Plataforma de supervisión de obras». Si existe `../../CLAUDE.md` (carpeta que agrupa todos los proyectos), léelo primero: tiene las reglas transversales, el plan y los contratos generales.
 
-**Estado:** fase 1: tema MUI, fuentes, `formato.ts` y estados vacío y error (1.9); pantalla base sin datos. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
+**Estado:** fase 1 (tema, fuentes, `formato.ts`, estados vacío y error), 001 (inicio de sesión con Keycloak, rutas protegidas, `SinAcceso` y barra con «Cerrar sesión») y 008 (cliente REST de Obras, Mis obras, detalle de obra y detalle de planilla con aprobar y observar). No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
 
 ## Stack
 
 - Node 24 · React 19 · Vite 8 · TypeScript 7 (lo trae la plantilla) · MUI 9 · lint con oxlint · pruebas con Vitest + Testing Library (jsdom)
-- Previsto: react-oidc-context 3 + oidc-client-ts (login con Keycloak, rol `cliente`); REST hacia Obras
-- Puerto: `4300`
+- TanStack Router por archivos (`src/routes/`, genera `src/routeTree.gen.ts`) · TanStack Query 5 · Zod 4
+- react-oidc-context 3 + oidc-client-ts 3 (login con Keycloak, cliente `portal`, rol `cliente`); REST hacia Obras (`VITE_OBRAS_URL`) con el token
+- TanStack Form 1 (diálogo de observar) · TanStack Table 9 (tablas de partidas y de líneas)
+- Puerto: `4300`. Variables en `.env` (copia `.env.example`; Keycloak en `http://localhost:8080`)
 
 ## Comandos
 
 ```sh
 npm install
+cp .env.example .env # una vez
 npm run dev          # http://localhost:4300
 npm run build        # tsc -b && vite build
 npm run lint
 npm test             # vitest run
 npm run preview      # sirve lo compilado
 ```
+
+## Configuración y publicación (601)
+
+- Se compila **una vez** y se publica como archivos estáticos (sin imagen Docker). Las direcciones salen de `configuracion.json`, que el script de `infra` escribe al publicar desde `configuracion.json.plantilla`; `src/main.tsx` lo lee antes de montar React y, si no está (desarrollo), usa `.env` y, si falta, los valores de desarrollo; en la compilación publicada, sin el archivo (o incompleto) no arranca.
+- Variables y reglas del servidor de estáticos: `docs/contratos.md` («Publicación»). CI en `.github/workflows/ci.yml`.
 
 ## Estructura
 

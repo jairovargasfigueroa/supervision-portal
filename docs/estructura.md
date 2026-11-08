@@ -18,34 +18,54 @@ React 19 + Vite 8, MUI 9 (`@mui/material`, `@mui/icons-material`, `@emotion/reac
 
 ```
 src/
-  main.tsx                     # AuthProvider → QueryClientProvider → ThemeProvider → RouterProvider
-  App.tsx                      # solo fase 1: pantalla base (barra + estado vacío); se reemplaza por routes/ al llegar el router
+  main.tsx                     # carga configuracion.json (601) y valida; luego monta AuthProvider → ProveedorClienteObras → QueryClientProvider → ThemeProvider → RouterProvider
   tema.ts
-  routes/                      # TanStack Router por archivos
+  routeTree.gen.ts             # lo genera @tanstack/router-plugin desde routes/ (se sube al repo: `tsc -b` lo necesita; no se edita ni se revisa con lint)
+  routes/                      # TanStack Router por archivos (cada archivo exporta solo `Route`)
     __root.tsx                 # diseño: barra superior con usuario y cerrar sesión; protección de sesión y rol cliente
     index.tsx                  # Mis obras
     obras.$obraId.tsx          # Detalle de obra
     planillas.$planillaId.tsx  # Detalle de planilla, aprobar u observar
-    sin-acceso.tsx
+    sin-acceso.tsx             # usa componentes/SinAcceso.tsx
   api/
-    cliente.ts                 # fetch a VITE_OBRAS_URL con el token; Problem Details → error tipado
-    obras.ts, planillas.ts     # funciones + queryOptions de TanStack Query
+    cliente.ts                 # fetch a VITE_OBRAS_URL con el token; Problem Details → ErrorApi; ProveedorClienteObras / useClienteObras; reintentos de TanStack Query
+    obras.ts, planillas.ts     # tipos del contrato, funciones + queryOptions de TanStack Query
   componentes/
-    TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx, GaleriaFotos.tsx
+    BarraSuperior.tsx, SinAcceso.tsx
+    TablaDatos.tsx             # TanStack Table + Table de MUI; en el celular, columnas `meta.secundaria` en un detalle desplegable
+    EstadoChip.tsx             # chip de estado (y EstadoPlanillaChip con las etiquetas de docs/mensajes.md)
+    EstadoVacio.tsx, EstadoError.tsx, GaleriaFotos.tsx
+    Seccion.tsx                # tarjeta de sección con título (cada sección carga y falla por su cuenta) y Cargando
+    BarraPorcentaje.tsx        # etiqueta, % y barra (avance físico, plazo transcurrido)
+    Enlaces.tsx                # BotonEnlace y TarjetaEnlace: MUI con createLink de TanStack Router
     ObservarDialogo.tsx (TanStack Form + Zod: motivo 10–500), AprobarDialogo.tsx
   nucleo/
-    formato.ts, errores.ts
+    configuracion.ts           # cargarConfiguracion (601): configuracion.json al publicar; respaldo VITE_* de .env y valores de desarrollo; validada con Zod
+    sesion.ts                  # configuración de react-oidc-context y leerUsuario (nombre, roles y azp del token)
+    roles.ts                   # rolesEfectivos(roles, azp) y tieneAcceso(roles, azp)
+    formato.ts, errores.ts     # errores.ts: codigo → texto de docs/mensajes.md
+    esperaAprobacion.ts        # useEsperaAprobacion: consulta cada 2 s mientras APROBANDO, aviso a los 90 s, corte a los 4 min
+  pruebas/
+    portalSimulado.tsx         # solo para las pruebas: sesión de cliente, Obras simulado (fetch) y datos de prueba
 ```
 
 Las pruebas van junto al código, con sufijo `.test.ts` / `.test.tsx` (`nucleo/formato.test.ts`, `componentes/estados.test.tsx`).
 
 ## Reglas
 
-- Datos siempre con TanStack Query (`queryOptions` por recurso; `refetchInterval: 2000` mientras la planilla está `APROBANDO`).
+- Datos siempre con TanStack Query (`queryOptions` por recurso; `refetchInterval: 2000` mientras la planilla está `APROBANDO`, lo decide `useEsperaAprobacion`: a los 90 s muestra el aviso de demora y a los 4 minutos deja de consultar y ofrece «Actualizar»).
 - Mutaciones (`aprobar`, `observar`) invalidan las consultas de la planilla y de la obra.
+- Toda llamada a Obras pasa por `useClienteObras()` (token vigente en cada pedido, tiempo máximo de 30 s). Los errores son `ErrorApi` (`tipo`: `respuesta`, `red` o `tiempo`; `estado`, `codigo`, `errores[]`) y el texto lo da `mensajeDeError` de `nucleo/errores.ts`; nunca se muestra el `detail` del servicio. Las consultas se reintentan solo ante red, tiempo o 5xx (hasta 2 veces).
 - Los parámetros de ruta se validan con Zod en la definición de la ruta.
-- Variables de entorno `VITE_KEYCLOAK_URL`, `VITE_OBRAS_URL` validadas al iniciar con Zod.
+- Configuración (601): antes de montar React, `cargarConfiguracion` lee `configuracion.json` (junto a `index.html`; lo escribe al publicar el script de `infra` desde `configuracion.json.plantilla`: `keycloakUrl`, `keycloakRealm`, `obrasUrl`, `erpUrl`). Lo que no traiga sale de las variables `VITE_KEYCLOAK_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT_ID`, `VITE_OBRAS_URL` y `VITE_ERP_URL` (`.env`, copia de `.env.example`) y, si tampoco están, de los valores de desarrollo (los de `.env.example`). Todo se valida con Zod al iniciar. Así la misma compilación sirve en desarrollo y en cualquier nube.
+
+## Sesión (001)
+
+- `AuthProvider` de react-oidc-context con `authority = ${VITE_KEYCLOAK_URL}/realms/${VITE_KEYCLOAK_REALM}`, `client_id = portal`, `redirect_uri` y `post_logout_redirect_uri` = origen del portal, `automaticSilentRenew` y PKCE (por defecto). Al volver de Keycloak, `onSigninCallback` quita `code`, `state`, `session_state` e `iss` de la URL.
+- `routes/__root.tsx` protege todas las rutas: sin sesión llama a `signinRedirect()`; si la renovación del token falla o el token vence, vuelve a `signinRedirect()`; sin rol `cliente` lleva a `/sin-acceso`, y con él no deja entrar a `/sin-acceso`.
+- Los roles del realm vienen solo en el token de acceso (Keycloak no los pone en el de identidad), así que `leerUsuario` lee su contenido (sin validar la firma: eso lo hacen los servicios).
+- Usuario con varios roles (`docs/convenciones.md`): solo cuentan los roles del `azp` del token; en el portal, `cliente`. `demo1` (residente y cliente) entra como cliente.
 
 ## Pruebas
 
-Vitest + Testing Library: rutas protegidas, diálogo de observar (validación), formato, estados vacío y error. `npm test` (`vitest run`, entorno `jsdom`, configurado en `vite.config.ts`). Sin `globals`: cada prueba importa `describe`/`it`/`expect` de `vitest` y las de componentes llaman a `cleanup` en `afterEach`.
+Vitest + Testing Library: rutas protegidas, diálogo de observar (validación), formato, estados vacío y error. Las pantallas (`routes/obras.test.tsx`, `routes/planillas.test.tsx`) se prueban con las rutas reales y Obras simulado (`pruebas/portalSimulado.tsx`, que inyecta un `fetch` en el cliente); la espera de la saga, con relojes simulados de Vitest. `npm test` (`vitest run`, entorno `jsdom`, configurado en `vite.config.ts`). Sin `globals`: cada prueba importa `describe`/`it`/`expect` de `vitest` y las de componentes llaman a `cleanup` en `afterEach`.
